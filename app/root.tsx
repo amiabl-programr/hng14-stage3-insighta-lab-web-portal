@@ -1,12 +1,13 @@
-import { Links, Meta, Outlet, Scripts } from "react-router";
-import { QueryProvider } from "./context/query-provider";
-import type { LinksFunction } from "react-router";
+import { Links, Meta, Outlet, Scripts } from 'react-router';
+import { QueryProvider } from './context/query-provider';
+import { AuthProvider } from './context/auth-context';
+import type { LinksFunction } from 'react-router';
 
-import "./tailwind.css";
+import './tailwind.css';
 
 export const links: LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+  { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
 ];
 
 export default function App() {
@@ -19,9 +20,11 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <QueryProvider>
-          <Outlet />
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            <Outlet />
+          </QueryProvider>
+        </AuthProvider>
         <Scripts />
       </body>
     </html>

@@ -1,9 +1,16 @@
 .DS_Store
 .env
+.env.local
 /node_modules/
 
 # React Router
-/.react-router/
+.react-router/
 /build/
+
+# Keep .env.production for deployment reference
+.env.production
+
+# Documentation
 req.md
 server.md
+implementation-guide.md
