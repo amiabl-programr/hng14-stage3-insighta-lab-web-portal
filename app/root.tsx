@@ -1,8 +1,16 @@
-import { Links, Meta, Outlet, Scripts } from 'react-router';
+import {
+  Link,
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  isRouteErrorResponse,
+  useRouteError,
+} from 'react-router';
 import { QueryProvider } from './context/query-provider';
 import { AuthProvider } from './context/auth-context';
 import AppShell from './components/app-shell';
-import ErrorBoundary from './components/error-boundary';
+import AppErrorBoundary from './components/error-boundary';
 import type { LinksFunction } from 'react-router';
 
 import './tailwind.css';
@@ -24,15 +32,47 @@ export default function App() {
       <body>
         <AuthProvider>
           <QueryProvider>
-            <ErrorBoundary>
+            <AppErrorBoundary>
               <AppShell>
                 <Outlet />
               </AppShell>
-            </ErrorBoundary>
+            </AppErrorBoundary>
           </QueryProvider>
         </AuthProvider>
         <Scripts />
       </body>
     </html>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (isRouteErrorResponse(error) && error.status === 404) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md text-center">
+          <h1 className="text-6xl font-bold text-gray-300">404</h1>
+          <p className="mt-4 text-lg text-gray-600">Page not found</p>
+          <Link
+            to="/dashboard"
+            className="mt-8 inline-block rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Go to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
+        <p className="mt-2 text-gray-600">
+          {error instanceof Error ? error.message : 'An unexpected error occurred'}
+        </p>
+      </div>
+    </div>
   );
 }

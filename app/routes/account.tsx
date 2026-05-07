@@ -6,21 +6,72 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: 'Account - Insighta' }, { name: 'description', content: 'Manage your account' }];
 }
 
+function AccountSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="mb-8 h-9 w-32 rounded bg-gray-200" />
+      <div className="rounded-lg bg-white p-6 shadow">
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 rounded-full bg-gray-200" />
+          <div>
+            <div className="mb-1 h-5 w-40 rounded bg-gray-200" />
+            <div className="h-4 w-56 rounded bg-gray-200" />
+          </div>
+        </div>
+        <div className="mt-6 space-y-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex justify-between border-b pb-3">
+              <div className="h-4 w-16 rounded bg-gray-200" />
+              <div className="h-4 w-24 rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-8">
+          <div className="h-10 w-28 rounded-md bg-gray-200" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Account() {
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      <div className="min-h-screen bg-gray-50 px-4 py-12">
+        <div className="mx-auto max-w-2xl">
+          <AccountSkeleton />
+        </div>
       </div>
     );
   }
 
-  if (!user) {
-    navigate('/login');
+  if (!isAuthenticated) {
+    navigate('/login', { replace: true });
     return null;
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-12">
+        <div className="mx-auto max-w-2xl">
+          <h1 className="mb-8 text-3xl font-bold text-gray-900">Account</h1>
+          <div className="rounded-lg bg-white p-6 shadow">
+            <p className="text-gray-500">Unable to load account details.</p>
+            <div className="mt-8">
+              <button
+                onClick={logout}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

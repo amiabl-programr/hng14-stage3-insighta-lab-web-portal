@@ -32,15 +32,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   const checkAuth = async () => {
+    let gotUser = false;
     try {
-      const response = await apiClient.get('/auth/me');
-      setUser(response.data.data);
+      try {
+        const refreshResponse = await apiClient.post('/auth/refresh');
+        const userData = refreshResponse.data?.data?.user || refreshResponse.data?.user;
+        if (userData) {
+          setUser(userData);
+          sessionStorage.setItem('insighta_user', JSON.stringify(userData));
+          gotUser = true;
+        }
+      } catch {
+        await apiClient.get('/api/profiles', {
+          params: { limit: 1, page: 1 },
+        });
+      }
 
       const csrfCookie = document.cookie
         .split('; ')
         .find((row) => row.startsWith(`${import.meta.env.VITE_CSRF_COOKIE_NAME}=`))
         ?.split('=')[1];
       setCsrfToken(csrfCookie || null);
+
+      if (!gotUser) {
+        const storedUser = sessionStorage.getItem('insighta_user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      }
     } catch {
       setUser(null);
       setCsrfToken(null);
@@ -54,9 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = () => {
-    const frontendUrl = import.meta.env.VITE_FRONTEND_URL;
-    const callbackUrl = `${frontendUrl}/auth/callback`;
-    const oauthUrl = `${import.meta.env.VITE_GITHUB_OAUTH_URL}&redirect_uri=${encodeURIComponent(callbackUrl)}`;
+    const frontendUrl = import.meta.env.VITE_API_BASE_URL;
+    const oauthUrl = `${import.meta.env.VITE_GITHUB_OAUTH_URL}&redirect_uri=${encodeURIComponent(`${frontendUrl}/auth/github/callback`)}`;
     window.location.href = oauthUrl;
   };
 
