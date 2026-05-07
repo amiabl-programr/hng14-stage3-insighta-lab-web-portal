@@ -82,7 +82,9 @@ export default function Dashboard() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg bg-white p-6 shadow">
               <p className="text-sm font-medium text-gray-600">Total Profiles</p>
-              <p className="mt-2 text-3xl font-bold text-gray-900">{stats.total.toLocaleString()}</p>
+              <p className="mt-2 text-3xl font-bold text-gray-900">
+                {stats.total.toLocaleString()}
+              </p>
             </div>
           </div>
 

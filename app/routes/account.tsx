@@ -1,5 +1,5 @@
 import type { Route } from './+types/account';
-import { Form, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useAuth } from '~/context/auth-context';
 
 export function meta({}: Route.MetaArgs) {
