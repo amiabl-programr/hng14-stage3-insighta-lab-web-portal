@@ -35,7 +35,7 @@ function AccountSkeleton() {
 }
 
 export default function Account() {
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -48,9 +48,30 @@ export default function Account() {
     );
   }
 
-  if (!user) {
-    navigate('/login');
+  if (!isAuthenticated) {
+    navigate('/login', { replace: true });
     return null;
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-12">
+        <div className="mx-auto max-w-2xl">
+          <h1 className="mb-8 text-3xl font-bold text-gray-900">Account</h1>
+          <div className="rounded-lg bg-white p-6 shadow">
+            <p className="text-gray-500">Unable to load account details.</p>
+            <div className="mt-8">
+              <button
+                onClick={logout}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

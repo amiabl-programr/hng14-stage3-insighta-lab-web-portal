@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { Route } from './+types/callback';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '~/context/auth-context';
-
-const AUTH_TIMEOUT_MS = 15000;
+import apiClient from '~/api/client';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Completing Sign In - Insighta' }];
@@ -12,49 +11,37 @@ export function meta({}: Route.MetaArgs) {
 export default function Callback() {
   const { checkAuth } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
-      setError('Sign in took too long. Please try again.');
-    }, AUTH_TIMEOUT_MS);
+    const token = searchParams.get('token');
+
+    if (token === 'ok') {
+      const storeUser = async () => {
+        try {
+          const refreshResponse = await apiClient.post('/auth/refresh');
+          const userData = refreshResponse.data?.data?.user || refreshResponse.data?.user;
+          if (userData) {
+            sessionStorage.setItem('insighta_user', JSON.stringify(userData));
+          }
+        } catch {}
+      };
+      storeUser();
+      navigate('/dashboard', { replace: true });
+      return;
+    }
 
     const completeAuth = async () => {
       try {
         await checkAuth();
-        clearTimeout(timeoutRef.current);
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } catch {
-        clearTimeout(timeoutRef.current);
-        navigate('/login?error=auth_failed');
+        navigate('/login?error=auth_failed', { replace: true });
       }
     };
 
     completeAuth();
-
-    return () => clearTimeout(timeoutRef.current);
-  }, [checkAuth, navigate]);
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-            <span className="text-xl text-red-600">!</span>
-          </div>
-          <h2 className="mt-4 text-lg font-semibold text-gray-900">Sign In Timed Out</h2>
-          <p className="mt-1 text-sm text-gray-600">{error}</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Back to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+  }, [checkAuth, navigate, searchParams]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -64,8 +51,4 @@ export default function Callback() {
       </div>
     </div>
   );
-}
-
-export function clientLoader() {
-  return null;
 }
