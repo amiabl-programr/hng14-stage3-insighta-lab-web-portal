@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getCsrfToken } from './csrf';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -11,10 +12,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const csrfToken = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith(`${import.meta.env.VITE_CSRF_COOKIE_NAME}=`))
-      ?.split('=')[1];
+    const csrfToken = getCsrfToken();
 
     if (
       csrfToken &&

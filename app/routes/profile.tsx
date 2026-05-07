@@ -55,7 +55,9 @@ export default function Profile() {
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Country</dt>
-                  <dd className="mt-1 text-lg text-gray-900">{data.data.country_id}</dd>
+                  <dd className="mt-1 text-lg text-gray-900">
+                    {data.data.country_name} ({data.data.country_id})
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Created</dt>

@@ -20,7 +20,7 @@ export default function Profiles() {
     limit,
     gender: filters.gender,
     age_group: filters.age_group,
-    country: filters.country,
+    country_id: filters.country_id,
     sort_by: filters.sort_by,
     order: (filters.order as 'asc' | 'desc') || undefined,
   };

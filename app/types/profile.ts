@@ -3,6 +3,7 @@ export interface Profile {
   name: string;
   gender: string;
   country_id: string;
+  country_name: string;
   age_group: string;
   age: number | null;
   created_at: string;
@@ -24,7 +25,7 @@ export interface ProfilesResponse {
 
 export interface ProfileFilters {
   gender?: string;
-  country?: string;
+  country_id?: string;
   age_group?: string;
   min_age?: number;
   max_age?: number;

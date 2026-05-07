@@ -1,6 +1,16 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from 'react';
 import { useNavigate } from 'react-router';
 import apiClient from '~/api/client';
+import { bootstrapCsrf, getCsrfToken } from '~/api/csrf';
 
 interface User {
   id: string;
@@ -20,7 +30,7 @@ interface AuthContextType {
   csrfToken: string | null;
   login: () => void;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,55 +40,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const navigate = useNavigate();
+  const initialCheckDone = useRef(false);
 
-  const checkAuth = async () => {
-    let gotUser = false;
+  const checkAuth = useCallback(async () => {
     try {
-      try {
-        const refreshResponse = await apiClient.post('/auth/refresh');
-        const userData = refreshResponse.data?.data?.user || refreshResponse.data?.user;
-        if (userData) {
-          setUser(userData);
-          sessionStorage.setItem('insighta_user', JSON.stringify(userData));
-          gotUser = true;
-        }
-      } catch {
-        await apiClient.get('/api/profiles', {
-          params: { limit: 1, page: 1 },
-        });
+      const refreshResponse = await apiClient.post('/auth/refresh');
+      const userData = refreshResponse.data?.data?.user || refreshResponse.data?.user;
+      if (userData) {
+        setUser(userData);
+        sessionStorage.setItem('insighta_user', JSON.stringify(userData));
+        return userData;
       }
-
-      const csrfCookie = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith(`${import.meta.env.VITE_CSRF_COOKIE_NAME}=`))
-        ?.split('=')[1];
-      setCsrfToken(csrfCookie || null);
-
-      if (!gotUser) {
-        const storedUser = sessionStorage.getItem('insighta_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      }
+      return null;
     } catch {
       setUser(null);
       setCsrfToken(null);
+      return null;
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    checkAuth();
   }, []);
 
-  const login = () => {
+  useEffect(() => {
+    if (initialCheckDone.current) return;
+    initialCheckDone.current = true;
+    (async () => {
+      await bootstrapCsrf();
+      setCsrfToken(getCsrfToken());
+      await checkAuth();
+    })();
+  }, [checkAuth]);
+
+  const login = useCallback(() => {
     const frontendUrl = import.meta.env.VITE_API_BASE_URL;
     const oauthUrl = `${import.meta.env.VITE_GITHUB_OAUTH_URL}&redirect_uri=${encodeURIComponent(`${frontendUrl}/auth/github/callback`)}`;
     window.location.href = oauthUrl;
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await apiClient.post('/auth/logout');
     } catch {
@@ -87,23 +86,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setCsrfToken(null);
       navigate('/login');
     }
-  };
+  }, [navigate]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        isAuthenticated: !!user && user.is_active,
-        csrfToken,
-        login,
-        logout,
-        checkAuth,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated: !!user,
+      csrfToken,
+      login,
+      logout,
+      checkAuth,
+    }),
+    [user, isLoading, csrfToken, login, logout, checkAuth]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
