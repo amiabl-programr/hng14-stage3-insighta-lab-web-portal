@@ -8,7 +8,7 @@ export function useProfiles(filters: ProfileFilters) {
     queryFn: async () => {
       const params: Record<string, string | number | undefined> = {};
       if (filters.gender) params.gender = filters.gender;
-      if (filters.country) params.country = filters.country;
+      if (filters.country_id) params.country_id = filters.country_id;
       if (filters.age_group) params.age_group = filters.age_group;
       if (filters.min_age !== undefined) params.min_age = filters.min_age;
       if (filters.max_age !== undefined) params.max_age = filters.max_age;

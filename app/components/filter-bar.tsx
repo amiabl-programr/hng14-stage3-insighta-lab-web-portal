@@ -8,11 +8,9 @@ const GENDERS = ['', 'male', 'female'];
 const AGE_GROUPS = ['', 'child', 'young', 'adult', 'middle-aged', 'elderly'];
 const SORT_OPTIONS = [
   { value: '', label: 'Default' },
-  { value: 'name', label: 'Name' },
   { value: 'age', label: 'Age' },
-  { value: 'gender', label: 'Gender' },
-  { value: 'country', label: 'Country' },
   { value: 'created_at', label: 'Created' },
+  { value: 'gender_probability', label: 'Gender Probability' },
 ];
 
 export default function FilterBar({ onApply }: FilterBarProps) {
@@ -26,7 +24,7 @@ export default function FilterBar({ onApply }: FilterBarProps) {
     const filters: Record<string, string> = {};
     if (gender) filters.gender = gender;
     if (ageGroup) filters.age_group = ageGroup;
-    if (country) filters.country = country;
+    if (country) filters.country_id = country;
     if (sortBy) filters.sort_by = sortBy;
     filters.order = order;
     onApply(filters);

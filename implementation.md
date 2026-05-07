@@ -107,3 +107,34 @@ Branch 1 (profiles) ──→ Branch 2 (layout) ──→ Branch 3 (dashboard)
 ```
 
 Branches 2 and 3 can be developed concurrently if needed.
+
+
+
+
+                                                                        
+                                                         ## Summary     
+Fixes the auth flow by removing dependency on the non-existent `/auth/me` endpoint. 
+The backend API (per `server.md`) only has `/auth/github`, `/auth/github/callback`, `/  
+auth/refresh`, and `/auth/logout` — no `/auth/me`.                                  
+                                                                                             
+## Changes   
+   
+- **`auth-context.tsx`** — `checkAuth()` now tries `POST /auth/refresh` first (reads  
+HTTP-only cookies), falls back to `GET /api/profiles?limit=1` to verify auth. User    
+data cached in `sessionStorage` for persistence across refreshes.
+  
+- **`callback.tsx`** — Detects `?token=ok` query param (set by backend after 
+successful OAuth) and redirects to `/dashboard`. Removed broken timeout-based error
+handling and stale `clientLoader`.    
+   
+- **`client.ts`** — Removed `window.location.href` redirects from axios 401/403  
+interceptor. These caused full page navigations that bypass React state. Auth guards (
+`AuthGuard`/`RoleGuard`) now handle redirection cleanly.
+   
+- **`root.tsx`** — Added React Router route-level `ErrorBoundary` export that renders   
+a clean 404 page for unmatched URLs (e.g., Chrome DevTools probe requests) instead of   
+throwing an unhandled `ErrorResponse`.
+   
+- **`account.tsx`** — Uses `isAuthenticated` instead of `user` for auth gate; added
+fallback view when user data is unavailable (no `/auth/me` endpoint).    
+                                  
