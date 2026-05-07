@@ -1,6 +1,8 @@
 import { Links, Meta, Outlet, Scripts } from 'react-router';
 import { QueryProvider } from './context/query-provider';
 import { AuthProvider } from './context/auth-context';
+import AppShell from './components/app-shell';
+import ErrorBoundary from './components/error-boundary';
 import type { LinksFunction } from 'react-router';
 
 import './tailwind.css';
@@ -22,7 +24,11 @@ export default function App() {
       <body>
         <AuthProvider>
           <QueryProvider>
-            <Outlet />
+            <ErrorBoundary>
+              <AppShell>
+                <Outlet />
+              </AppShell>
+            </ErrorBoundary>
           </QueryProvider>
         </AuthProvider>
         <Scripts />
