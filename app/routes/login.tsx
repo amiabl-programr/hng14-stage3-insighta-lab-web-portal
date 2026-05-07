@@ -1,5 +1,5 @@
 import type { Route } from './+types/login';
-import { Form, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { useAuth } from '~/context/auth-context';
 
 export function meta({}: Route.MetaArgs) {
